@@ -1,5 +1,5 @@
 -- language: Lua, executor: Delta, game: Anime Crusaders
--- KAZ HUB v1.2 | Full Features
+-- KAZ HUB v1.3 | Dark + Teal Toggle UI
 
 pcall(function()
     game:GetService("CoreGui"):FindFirstChild("KazHub"):Destroy()
@@ -11,269 +11,37 @@ local UIS = game:GetService("UserInputService")
 local RS = game:GetService("RunService")
 local lp = Players.LocalPlayer
 
--- STATE
 local state = {
-    autopilot = false,
-    autoreplay = false,
-    autostart = false,
-    autojoin = false,
-    autoskip = false,
-    autoupgrade = false,
-    autosell = false,
-    autoquest = false,
-    macrorecord = false,
+    autopilot=false, autoreplay=false, autostart=false,
+    autoskip=false, autoupgrade=false, autosell=false,
+    autoquest=false, macrorecord=false,
 }
 local macroData = {}
-local selectedMap = ""
+local gameEndCooldown = false
 
--- GUI
-local sg = Instance.new("ScreenGui")
-sg.Name = "KazHub"
-sg.ResetOnSpawn = false
-sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-sg.IgnoreGuiInset = true
-sg.Parent = CoreGui
-
--- MINIMIZED TAB
-local tab = Instance.new("Frame")
-tab.Size = UDim2.new(0, 90, 0, 36)
-tab.Position = UDim2.new(0, 10, 0.4, 0)
-tab.BackgroundColor3 = Color3.fromRGB(100, 60, 220)
-tab.BorderSizePixel = 0
-tab.Active = true
-tab.Draggable = true
-tab.Visible = false
-tab.ZIndex = 10
-tab.Parent = sg
-Instance.new("UICorner", tab).CornerRadius = UDim.new(0, 10)
-
-local tabLabel = Instance.new("TextLabel")
-tabLabel.Size = UDim2.new(1, 0, 1, 0)
-tabLabel.BackgroundTransparency = 1
-tabLabel.Text = "⚡ KAZ HUB"
-tabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-tabLabel.TextSize = 11
-tabLabel.Font = Enum.Font.GothamBold
-tabLabel.ZIndex = 11
-tabLabel.Parent = tab
-
--- MAIN WINDOW
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 300, 0, 480)
-main.Position = UDim2.new(0.5, -150, 0.5, -240)
-main.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-main.Parent = sg
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
-
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(100, 60, 220)
-stroke.Thickness = 1.5
-stroke.Parent = main
-
--- HEADER
-local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 56)
-header.BackgroundColor3 = Color3.fromRGB(80, 40, 180)
-header.BorderSizePixel = 0
-header.Parent = main
-Instance.new("UICorner", header).CornerRadius = UDim.new(0, 12)
-
-local fixHeader = Instance.new("Frame")
-fixHeader.Size = UDim2.new(1, 0, 0.5, 0)
-fixHeader.Position = UDim2.new(0, 0, 0.5, 0)
-fixHeader.BackgroundColor3 = Color3.fromRGB(80, 40, 180)
-fixHeader.BorderSizePixel = 0
-fixHeader.Parent = header
-
-local icon = Instance.new("TextLabel")
-icon.Size = UDim2.new(0, 44, 0, 44)
-icon.Position = UDim2.new(0, 8, 0.5, -22)
-icon.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-icon.Text = "🗡️"
-icon.TextSize = 22
-icon.Font = Enum.Font.GothamBold
-icon.TextColor3 = Color3.fromRGB(255,255,255)
-icon.BorderSizePixel = 0
-icon.ZIndex = 2
-icon.Parent = header
-Instance.new("UICorner", icon).CornerRadius = UDim.new(0, 8)
-
-local iconStroke = Instance.new("UIStroke")
-iconStroke.Color = Color3.fromRGB(120, 80, 255)
-iconStroke.Thickness = 1.5
-iconStroke.Parent = icon
-
-local titleLbl = Instance.new("TextLabel")
-titleLbl.Size = UDim2.new(0, 160, 0, 20)
-titleLbl.Position = UDim2.new(0, 60, 0, 10)
-titleLbl.BackgroundTransparency = 1
-titleLbl.Text = "⚡ KAZ HUB"
-titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLbl.TextSize = 15
-titleLbl.Font = Enum.Font.GothamBold
-titleLbl.TextXAlignment = Enum.TextXAlignment.Left
-titleLbl.ZIndex = 2
-titleLbl.Parent = header
-
-local subLbl = Instance.new("TextLabel")
-subLbl.Size = UDim2.new(0, 160, 0, 16)
-subLbl.Position = UDim2.new(0, 60, 0, 30)
-subLbl.BackgroundTransparency = 1
-subLbl.Text = "Anime Crusaders"
-subLbl.TextColor3 = Color3.fromRGB(180, 160, 255)
-subLbl.TextSize = 11
-subLbl.Font = Enum.Font.Gotham
-subLbl.TextXAlignment = Enum.TextXAlignment.Left
-subLbl.ZIndex = 2
-subLbl.Parent = header
-
-local hideBtn = Instance.new("TextButton")
-hideBtn.Size = UDim2.new(0, 32, 0, 32)
-hideBtn.Position = UDim2.new(1, -40, 0.5, -16)
-hideBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-hideBtn.Text = "▬"
-hideBtn.TextColor3 = Color3.fromRGB(255,255,255)
-hideBtn.TextSize = 13
-hideBtn.Font = Enum.Font.GothamBold
-hideBtn.BorderSizePixel = 0
-hideBtn.ZIndex = 5
-hideBtn.Parent = header
-Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(0, 6)
-
--- BODY SCROLL
-local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1, 0, 1, -56)
-scroll.Position = UDim2.new(0, 0, 0, 56)
-scroll.BackgroundTransparency = 1
-scroll.BorderSizePixel = 0
-scroll.ScrollBarThickness = 3
-scroll.ScrollBarImageColor3 = Color3.fromRGB(100, 60, 220)
-scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-scroll.Parent = main
-
-local layout = Instance.new("UIListLayout")
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Padding = UDim.new(0, 5)
-layout.Parent = scroll
-
-local pad = Instance.new("UIPadding")
-pad.PaddingLeft = UDim.new(0, 10)
-pad.PaddingRight = UDim.new(0, 10)
-pad.PaddingTop = UDim.new(0, 8)
-pad.PaddingBottom = UDim.new(0, 10)
-pad.Parent = scroll
-
--- STATUS
-local statusBar = Instance.new("Frame")
-statusBar.Size = UDim2.new(1, 0, 0, 28)
-statusBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-statusBar.BorderSizePixel = 0
-statusBar.LayoutOrder = 0
-statusBar.Parent = scroll
-Instance.new("UICorner", statusBar).CornerRadius = UDim.new(0, 6)
-
-local statusDot = Instance.new("TextLabel")
-statusDot.Size = UDim2.new(1, -10, 1, 0)
-statusDot.Position = UDim2.new(0, 10, 0, 0)
-statusDot.BackgroundTransparency = 1
-statusDot.Text = "● Ready"
-statusDot.TextColor3 = Color3.fromRGB(80, 220, 120)
-statusDot.TextSize = 12
-statusDot.Font = Enum.Font.Gotham
-statusDot.TextXAlignment = Enum.TextXAlignment.Left
-statusDot.Parent = statusBar
-
-local function setStatus(msg, color)
-    statusDot.Text = "● " .. msg
-    statusDot.TextColor3 = color or Color3.fromRGB(80, 220, 120)
-end
-
--- HELPERS
-local function makeSection(name, order)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, 0, 0, 22)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = name
-    lbl.TextColor3 = Color3.fromRGB(100, 60, 220)
-    lbl.TextSize = 11
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.LayoutOrder = order
-    lbl.Parent = scroll
-end
-
-local function makeToggle(label, emoji, order, callback)
-    local row = Instance.new("Frame")
-    row.Size = UDim2.new(1, 0, 0, 42)
-    row.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    row.BorderSizePixel = 0
-    row.LayoutOrder = order
-    row.Parent = scroll
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
-
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -70, 1, 0)
-    lbl.Position = UDim2.new(0, 10, 0, 0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = emoji .. "  " .. label
-    lbl.TextColor3 = Color3.fromRGB(220, 220, 240)
-    lbl.TextSize = 12
-    lbl.Font = Enum.Font.Gotham
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = row
-
-    local tog = Instance.new("TextButton")
-    tog.Size = UDim2.new(0, 54, 0, 26)
-    tog.Position = UDim2.new(1, -62, 0.5, -13)
-    tog.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
-    tog.Text = "OFF"
-    tog.TextColor3 = Color3.fromRGB(160, 160, 180)
-    tog.TextSize = 11
-    tog.Font = Enum.Font.GothamBold
-    tog.BorderSizePixel = 0
-    tog.Parent = row
-    Instance.new("UICorner", tog).CornerRadius = UDim.new(0, 13)
-
-    local on = false
-    tog.MouseButton1Click:Connect(function()
-        on = not on
-        if on then
-            tog.BackgroundColor3 = Color3.fromRGB(100, 60, 220)
-            tog.Text = "ON"
-            tog.TextColor3 = Color3.fromRGB(255,255,255)
-        else
-            tog.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
-            tog.Text = "OFF"
-            tog.TextColor3 = Color3.fromRGB(160, 160, 180)
+-- game end detector (fires callback ONCE per round end, 5s cooldown)
+local function onGameEnd(cb)
+    task.spawn(function()
+        while true do
+            task.wait(1)
+            local ended = false
+            pcall(function()
+                for _, v in ipairs(lp.PlayerGui:GetDescendants()) do
+                    local n = v.Name:lower()
+                    if (n:find("result") or n:find("end") or n:find("victory")
+                        or n:find("complete") or n:find("next")) and v.Visible then
+                        ended = true
+                    end
+                end
+            end)
+            if ended and not gameEndCooldown then
+                gameEndCooldown = true
+                cb()
+                task.wait(5)
+                gameEndCooldown = false
+            end
         end
-        if callback then callback(on) end
     end)
-    return tog
-end
-
-local function makeAction(label, emoji, order, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 0, 42)
-    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    btn.Text = emoji .. "  " .. label
-    btn.TextColor3 = Color3.fromRGB(220, 220, 240)
-    btn.TextSize = 12
-    btn.Font = Enum.Font.Gotham
-    btn.BorderSizePixel = 0
-    btn.LayoutOrder = order
-    btn.Parent = scroll
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-
-    btn.MouseButton1Click:Connect(function()
-        btn.BackgroundColor3 = Color3.fromRGB(100, 60, 220)
-        task.delay(0.25, function() btn.BackgroundColor3 = Color3.fromRGB(20, 20, 30) end)
-        if callback then callback() end
-    end)
-    return btn
 end
 
 local function fireRemote(keywords, arg)
@@ -296,310 +64,492 @@ local function fireRemote(keywords, arg)
     end
 end
 
--- ============ FEATURES ============
+-- GUI
+local screen = Instance.new("ScreenGui")
+screen.Name = "KazHub"
+screen.ResetOnSpawn = false
+screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screen.Parent = CoreGui
 
-makeSection("AUTOMATION", 1)
+-- minimized tab
+local tab = Instance.new("Frame")
+tab.Name = "MinTab"
+tab.Size = UDim2.new(0,120,0,32)
+tab.Position = UDim2.new(0,20,0,20)
+tab.BackgroundColor3 = Color3.fromRGB(14,14,20)
+tab.BorderSizePixel = 0
+tab.Active = true
+tab.Draggable = true
+tab.Visible = false
+tab.Parent = screen
+local tabStroke = Instance.new("UIStroke")
+tabStroke.Color = Color3.fromRGB(0,180,150)
+tabStroke.Thickness = 1.5
+tabStroke.Parent = tab
+local tabCorner = Instance.new("UICorner")
+tabCorner.CornerRadius = UDim.new(0,8)
+tabCorner.Parent = tab
+local tabLabel = Instance.new("TextLabel")
+tabLabel.Size = UDim2.new(1,0,1,0)
+tabLabel.BackgroundTransparency = 1
+tabLabel.Text = "⚡ KAZ HUB"
+tabLabel.TextColor3 = Color3.fromRGB(0,210,170)
+tabLabel.TextSize = 12
+tabLabel.Font = Enum.Font.GothamBold
+tabLabel.Parent = tab
 
--- AUTO NEXT STAGE
-makeToggle("Auto Next Stage", "▶", 2, function(on)
-    state.autopilot = on
-    setStatus(on and "Auto Next Stage ON" or "Ready",
-        on and Color3.fromRGB(100,60,220) or Color3.fromRGB(80,220,120))
-    if on then
-        task.spawn(function()
-            while state.autopilot do
-                fireRemote({"next","stage","continue","proceed"})
-                task.wait(3)
-            end
-        end)
-    end
-end)
+-- main window
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.new(0,320,0,500)
+main.Position = UDim2.new(0.5,-160,0.5,-250)
+main.BackgroundColor3 = Color3.fromRGB(14,14,20)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+main.ClipsDescendants = true
+main.Parent = screen
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0,14)
+mainCorner.Parent = main
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(35,35,50)
+mainStroke.Thickness = 1.5
+mainStroke.Parent = main
 
--- AUTO REPLAY
-makeToggle("Auto Replay", "🔁", 3, function(on)
-    state.autoreplay = on
-    setStatus(on and "Auto Replay ON" or "Ready",
-        on and Color3.fromRGB(100,60,220) or Color3.fromRGB(80,220,120))
-    if on then
-        task.spawn(function()
-            while state.autoreplay do
-                fireRemote({"replay","restart","again","retry"})
-                task.wait(4)
-            end
-        end)
-    end
-end)
+-- header
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1,0,0,52)
+header.BackgroundColor3 = Color3.fromRGB(18,18,26)
+header.BorderSizePixel = 0
+header.Parent = main
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0,14)
+headerCorner.Parent = header
+local headerFix = Instance.new("Frame") -- covers bottom corners
+headerFix.Size = UDim2.new(1,0,0,14)
+headerFix.Position = UDim2.new(0,0,1,-14)
+headerFix.BackgroundColor3 = Color3.fromRGB(18,18,26)
+headerFix.BorderSizePixel = 0
+headerFix.Parent = header
 
--- AUTO START
-makeToggle("Auto Start", "⚡", 4, function(on)
-    state.autostart = on
-    setStatus(on and "Auto Start ON" or "Ready",
-        on and Color3.fromRGB(100,60,220) or Color3.fromRGB(80,220,120))
-    if on then
-        task.spawn(function()
-            while state.autostart do
-                fireRemote({"start","begin","launch","play"})
-                task.wait(4)
-            end
-        end)
-    end
-end)
+local icon = Instance.new("TextLabel")
+icon.Size = UDim2.new(0,30,0,30)
+icon.Position = UDim2.new(0,14,0,11)
+icon.BackgroundTransparency = 1
+icon.Text = "⚡"
+icon.TextSize = 20
+icon.Font = Enum.Font.GothamBold
+icon.TextColor3 = Color3.fromRGB(0,210,170)
+icon.Parent = header
 
--- AUTO SKIP
-makeToggle("Auto Skip Wave", "⏭", 5, function(on)
-    state.autoskip = on
-    if on then
-        task.spawn(function()
-            while state.autoskip do
-                fireRemote({"skip","wave","fast"})
-                task.wait(2)
-            end
-        end)
-    end
-end)
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(0,180,0,20)
+titleLabel.Position = UDim2.new(0,48,0,8)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "KAZ HUB"
+titleLabel.TextColor3 = Color3.fromRGB(232,232,240)
+titleLabel.TextSize = 15
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = header
 
--- AUTO UPGRADE UNITS
-makeToggle("Auto Upgrade Units", "⬆", 6, function(on)
-    state.autoupgrade = on
-    if on then
-        task.spawn(function()
-            while state.autoupgrade do
-                fireRemote({"upgrade","level","enhance"})
-                task.wait(5)
-            end
-        end)
-    end
-end)
+local subLabel = Instance.new("TextLabel")
+subLabel.Size = UDim2.new(0,180,0,16)
+subLabel.Position = UDim2.new(0,48,0,27)
+subLabel.BackgroundTransparency = 1
+subLabel.Text = "Anime Crusaders"
+subLabel.TextColor3 = Color3.fromRGB(80,80,110)
+subLabel.TextSize = 11
+subLabel.Font = Enum.Font.Gotham
+subLabel.TextXAlignment = Enum.TextXAlignment.Left
+subLabel.Parent = header
 
--- AUTO SELL UNITS
-makeToggle("Auto Sell Excess", "💰", 7, function(on)
-    state.autosell = on
-    if on then
-        task.spawn(function()
-            while state.autosell do
-                fireRemote({"sell","remove","dispose"})
-                task.wait(6)
-            end
-        end)
-    end
-end)
+local hideBtn = Instance.new("TextButton")
+hideBtn.Size = UDim2.new(0,26,0,26)
+hideBtn.Position = UDim2.new(1,-38,0,13)
+hideBtn.BackgroundColor3 = Color3.fromRGB(30,30,42)
+hideBtn.Text = "—"
+hideBtn.TextColor3 = Color3.fromRGB(120,120,160)
+hideBtn.TextSize = 12
+hideBtn.Font = Enum.Font.GothamBold
+hideBtn.BorderSizePixel = 0
+hideBtn.Parent = header
+local hideBtnCorner = Instance.new("UICorner")
+hideBtnCorner.CornerRadius = UDim.new(0,6)
+hideBtnCorner.Parent = hideBtn
 
--- AUTO QUEST
-makeToggle("Auto Quest", "📜", 8, function(on)
-    state.autoquest = on
-    if on then
-        task.spawn(function()
-            while state.autoquest do
-                fireRemote({"quest","claim","complete","daily"})
-                task.wait(8)
-            end
-        end)
-    end
-end)
+-- status bar
+local statusBar = Instance.new("Frame")
+statusBar.Size = UDim2.new(1,0,0,28)
+statusBar.Position = UDim2.new(0,0,0,52)
+statusBar.BackgroundColor3 = Color3.fromRGB(16,16,22)
+statusBar.BorderSizePixel = 0
+statusBar.Parent = main
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1,-16,1,0)
+statusLabel.Position = UDim2.new(0,12,0,0)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "● Ready"
+statusLabel.TextColor3 = Color3.fromRGB(0,180,150)
+statusLabel.TextSize = 11
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Parent = statusBar
 
--- ============ MACRO ============
+local function setStatus(msg)
+    statusLabel.Text = "● " .. msg
+end
 
-makeSection("MACRO", 9)
+-- scroll body
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1,0,1,-108)
+scroll.Position = UDim2.new(0,0,0,80)
+scroll.BackgroundTransparency = 1
+scroll.BorderSizePixel = 0
+scroll.ScrollBarThickness = 3
+scroll.ScrollBarImageColor3 = Color3.fromRGB(0,180,150)
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.CanvasSize = UDim2.new(0,0,0,0)
+scroll.Parent = main
 
--- RECORD MACRO
-makeToggle("Record Macro", "⏺", 10, function(on)
-    state.macrorecord = on
-    macroData = {}
-    if on then
-        setStatus("Recording macro...", Color3.fromRGB(220, 50, 50))
-        task.spawn(function()
-            while state.macrorecord do
-                -- capture placement / upgrade remotes fired this tick
-                for _, v in ipairs(game:GetDescendants()) do
-                    if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-                        local n = v.Name:lower()
-                        if n:find("place") or n:find("upgrade") or n:find("unit") then
-                            table.insert(macroData, {name=v:GetFullName(), time=tick()})
-                        end
-                    end
-                end
-                task.wait(0.5)
-            end
-            setStatus("Macro saved (" .. #macroData .. " actions)", Color3.fromRGB(80,220,120))
-        end)
-    else
-        setStatus("Macro saved (" .. #macroData .. " actions)", Color3.fromRGB(80,220,120))
-    end
-end)
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0,4)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = scroll
 
--- PLAY MACRO
-makeAction("Play Macro", "▶", 11, function()
-    if #macroData == 0 then
-        setStatus("No macro recorded", Color3.fromRGB(220,100,50))
-        return
-    end
-    setStatus("Playing macro...", Color3.fromRGB(100,60,220))
-    task.spawn(function()
-        for _, action in ipairs(macroData) do
-            local remote = game
-            pcall(function()
-                for _, part in ipairs(action.name:split(".")) do
-                    remote = remote[part]
-                end
-                if remote:IsA("RemoteEvent") then remote:FireServer()
-                else remote:InvokeServer() end
-            end)
-            task.wait(0.3)
+local bodyPad = Instance.new("UIPadding")
+bodyPad.PaddingLeft = UDim.new(0,10)
+bodyPad.PaddingRight = UDim.new(0,10)
+bodyPad.PaddingTop = UDim.new(0,8)
+bodyPad.PaddingBottom = UDim.new(0,10)
+bodyPad.Parent = scroll
+
+local rowOrder = 0
+
+-- section label
+local function makeSection(text)
+    rowOrder += 1
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1,-20,0,20)
+    f.BackgroundTransparency = 1
+    f.LayoutOrder = rowOrder
+    f.Parent = scroll
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text:upper()
+    lbl.TextColor3 = Color3.fromRGB(60,60,88)
+    lbl.TextSize = 9
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.LetterSpacing = 2
+    lbl.Parent = f
+end
+
+-- pill toggle
+local function makeToggle(label, stateKey, onFire, offFire)
+    rowOrder += 1
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1,-20,0,42)
+    row.BackgroundColor3 = Color3.fromRGB(20,20,30)
+    row.BorderSizePixel = 0
+    row.LayoutOrder = rowOrder
+    row.Parent = scroll
+    local rc = Instance.new("UICorner")
+    rc.CornerRadius = UDim.new(0,10)
+    rc.Parent = row
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(35,35,50)
+    stroke.Thickness = 1
+    stroke.Parent = row
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1,-60,1,0)
+    lbl.Position = UDim2.new(0,12,0,0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = label
+    lbl.TextColor3 = Color3.fromRGB(190,190,210)
+    lbl.TextSize = 12
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = row
+
+    local pill = Instance.new("Frame")
+    pill.Size = UDim2.new(0,42,0,24)
+    pill.Position = UDim2.new(1,-54,0.5,-12)
+    pill.BackgroundColor3 = Color3.fromRGB(40,40,58)
+    pill.BorderSizePixel = 0
+    pill.Parent = row
+    local pc = Instance.new("UICorner")
+    pc.CornerRadius = UDim.new(1,0)
+    pc.Parent = pill
+
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0,18,0,18)
+    knob.Position = UDim2.new(0,3,0.5,-9)
+    knob.BackgroundColor3 = Color3.fromRGB(100,100,130)
+    knob.BorderSizePixel = 0
+    knob.Parent = pill
+    local kc = Instance.new("UICorner")
+    kc.CornerRadius = UDim.new(1,0)
+    kc.Parent = knob
+
+    local hitbox = Instance.new("TextButton")
+    hitbox.Size = UDim2.new(1,0,1,0)
+    hitbox.BackgroundTransparency = 1
+    hitbox.Text = ""
+    hitbox.Parent = row
+
+    hitbox.MouseButton1Click:Connect(function()
+        state[stateKey] = not state[stateKey]
+        local on = state[stateKey]
+        pill.BackgroundColor3 = on and Color3.fromRGB(0,180,150) or Color3.fromRGB(40,40,58)
+        knob.BackgroundColor3 = on and Color3.fromRGB(255,255,255) or Color3.fromRGB(100,100,130)
+        knob.Position = on and UDim2.new(1,-21,0.5,-9) or UDim2.new(0,3,0.5,-9)
+        stroke.Color = on and Color3.fromRGB(0,160,130) or Color3.fromRGB(35,35,50)
+        if on then
+            setStatus(label .. " ON")
+            if onFire then task.spawn(onFire) end
+        else
+            setStatus(label .. " OFF")
         end
-        setStatus("Macro done", Color3.fromRGB(80,220,120))
+    end)
+end
+
+-- action button
+local function makeAction(label, cb)
+    rowOrder += 1
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,-20,0,38)
+    btn.BackgroundColor3 = Color3.fromRGB(20,20,30)
+    btn.BorderSizePixel = 0
+    btn.Text = label
+    btn.TextColor3 = Color3.fromRGB(190,190,210)
+    btn.TextSize = 12
+    btn.Font = Enum.Font.Gotham
+    btn.LayoutOrder = rowOrder
+    btn.Parent = scroll
+    local bc = Instance.new("UICorner")
+    bc.CornerRadius = UDim.new(0,10)
+    bc.Parent = btn
+    local bs = Instance.new("UIStroke")
+    bs.Color = Color3.fromRGB(35,35,50)
+    bs.Thickness = 1
+    bs.Parent = btn
+
+    btn.MouseButton1Click:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(0,160,130)
+        task.wait(0.2)
+        btn.BackgroundColor3 = Color3.fromRGB(20,20,30)
+        if cb then task.spawn(cb) end
+    end)
+end
+
+-- map input
+local mapName = ""
+rowOrder += 1
+local function makeMapBox()
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1,-20,0,38)
+    f.BackgroundColor3 = Color3.fromRGB(20,20,30)
+    f.BorderSizePixel = 0
+    f.LayoutOrder = rowOrder
+    f.Parent = scroll
+    local fc = Instance.new("UICorner")
+    fc.CornerRadius = UDim.new(0,10)
+    fc.Parent = f
+    local fs = Instance.new("UIStroke")
+    fs.Color = Color3.fromRGB(35,35,50)
+    fs.Thickness = 1
+    fs.Parent = f
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(1,-20,1,0)
+    box.Position = UDim2.new(0,10,0,0)
+    box.BackgroundTransparency = 1
+    box.PlaceholderText = "Enter map name..."
+    box.PlaceholderColor3 = Color3.fromRGB(60,60,88)
+    box.Text = ""
+    box.TextColor3 = Color3.fromRGB(190,190,210)
+    box.TextSize = 12
+    box.Font = Enum.Font.Gotham
+    box.TextXAlignment = Enum.TextXAlignment.Left
+    box.Parent = f
+    box:GetPropertyChangedSignal("Text"):Connect(function()
+        mapName = box.Text
+    end)
+end
+
+-- build layout
+makeSection("Automation")
+makeToggle("Auto Next Stage","autopilot",function()
+    onGameEnd(function()
+        fireRemote({"next","stage","advance","proceed"})
+        setStatus("Next stage fired!")
+    end)
+end)
+makeToggle("Auto Replay","autoreplay",function()
+    onGameEnd(function()
+        fireRemote({"replay","restart","again","retry"})
+        setStatus("Replay fired!")
+    end)
+end)
+makeToggle("Auto Start","autostart",function()
+    task.spawn(function()
+        while state.autostart do
+            fireRemote({"start","begin","launch"})
+            task.wait(3)
+        end
+    end)
+end)
+makeToggle("Auto Skip Wave","autoskip",function()
+    task.spawn(function()
+        while state.autoskip do
+            fireRemote({"skip","wave","skipwave"})
+            task.wait(2)
+        end
+    end)
+end)
+makeToggle("Auto Upgrade Units","autoupgrade",function()
+    task.spawn(function()
+        while state.autoupgrade do
+            fireRemote({"upgrade","level","enhance"})
+            task.wait(4)
+        end
+    end)
+end)
+makeToggle("Auto Sell Excess","autosell",function()
+    task.spawn(function()
+        while state.autosell do
+            fireRemote({"sell","remove","excess"})
+            task.wait(5)
+        end
+    end)
+end)
+makeToggle("Auto Quest","autoquest",function()
+    task.spawn(function()
+        while state.autoquest do
+            fireRemote({"quest","claim","complete","daily"})
+            task.wait(10)
+        end
     end)
 end)
 
--- ============ MAP / JOIN ============
-
-makeSection("MAP & JOIN", 12)
-
--- MAP INPUT
-local mapRow = Instance.new("Frame")
-mapRow.Size = UDim2.new(1, 0, 0, 42)
-mapRow.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-mapRow.BorderSizePixel = 0
-mapRow.LayoutOrder = 13
-mapRow.Parent = scroll
-Instance.new("UICorner", mapRow).CornerRadius = UDim.new(0, 8)
-
-local mapInput = Instance.new("TextBox")
-mapInput.Size = UDim2.new(1, -20, 0, 28)
-mapInput.Position = UDim2.new(0, 10, 0.5, -14)
-mapInput.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-mapInput.BorderSizePixel = 0
-mapInput.PlaceholderText = "Enter map name..."
-mapInput.PlaceholderColor3 = Color3.fromRGB(100,100,120)
-mapInput.TextColor3 = Color3.fromRGB(220,220,240)
-mapInput.TextSize = 12
-mapInput.Font = Enum.Font.Gotham
-mapInput.Text = ""
-mapInput.Parent = mapRow
-Instance.new("UICorner", mapInput).CornerRadius = UDim.new(0, 6)
-
-mapInput.FocusLost:Connect(function()
-    selectedMap = mapInput.Text
+makeSection("Macro")
+makeToggle("⏺ Record Macro","macrorecord",function()
+    macroData = {}
+    setStatus("Recording...")
 end)
-
--- AUTO JOIN MAP
-makeAction("Auto Join Selected Map", "🗺", 14, function()
-    if selectedMap == "" then
-        setStatus("Type a map name first", Color3.fromRGB(220,100,50))
-        return
+makeAction("▶  Play Macro",function()
+    setStatus("Playing macro...")
+    for _,entry in ipairs(macroData) do
+        fireRemote({entry.remote}, entry.arg)
+        task.wait(entry.delay or 0.5)
     end
-    setStatus("Joining: " .. selectedMap, Color3.fromRGB(100,60,220))
-    fireRemote({"join","map","select","enter"}, selectedMap)
-    task.wait(1)
-    setStatus("Join sent: " .. selectedMap, Color3.fromRGB(80,220,120))
+    setStatus("Macro done!")
 end)
 
--- ============ QUICK ACTIONS ============
-
-makeSection("QUICK ACTIONS", 15)
-
-makeAction("Redeem All Codes", "🎁", 16, function()
-    setStatus("Redeeming codes...", Color3.fromRGB(255,200,50))
-    local codes = {
-        "ANNIVERSARY","UPDATE10","KAZHUB","ACFREE",
-        "NEWUPDATE","GEMS100","KAZFREE","AC2024","FREEGEMS"
-    }
-    for _, code in ipairs(codes) do
-        fireRemote({"redeem","code","promo"}, code)
-        task.wait(0.4)
+makeSection("Map & Join")
+makeMapBox()
+makeAction("🗺  Auto Join Selected Map",function()
+    if mapName ~= "" then
+        fireRemote({"join","map","teleport","load"}, mapName)
+        setStatus("Joining: "..mapName)
+    else
+        setStatus("Enter a map name first!")
     end
-    setStatus("All codes attempted", Color3.fromRGB(80,220,120))
 end)
 
-makeAction("Collect Daily Rewards", "⭐", 17, function()
-    setStatus("Collecting...", Color3.fromRGB(255,200,50))
-    fireRemote({"collect","reward","claim","daily","login"})
-    task.wait(1)
-    setStatus("Rewards collected", Color3.fromRGB(80,220,120))
+makeSection("Quick Actions")
+makeAction("🎁  Redeem All Codes",function()
+    fireRemote({"redeem","code","gift"})
+    setStatus("Codes redeemed!")
 end)
-
-makeAction("Auto Summon x10", "🌀", 18, function()
-    setStatus("Summoning...", Color3.fromRGB(100,60,220))
-    for i = 1, 10 do
+makeAction("⭐  Collect Daily Rewards",function()
+    fireRemote({"daily","reward","collect","claim"})
+    setStatus("Daily rewards collected!")
+end)
+makeAction("🌀  Auto Summon x10",function()
+    for i=1,10 do
         fireRemote({"summon","pull","gacha","roll"})
-        task.wait(0.5)
+        task.wait(0.3)
     end
-    setStatus("Summon done", Color3.fromRGB(80,220,120))
+    setStatus("Summoned x10!")
 end)
-
-makeAction("Scan All Remotes", "🔍", 19, function()
-    setStatus("Scanning...", Color3.fromRGB(255,200,50))
-    local found = 0
+makeAction("🔍  Scan All Remotes",function()
+    local found = {}
     for _, v in ipairs(game:GetDescendants()) do
         if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-            found += 1
-            print("[KAZ] " .. v:GetFullName())
+            table.insert(found, v.Name)
         end
     end
-    setStatus("Found " .. found .. " remotes (see output)", Color3.fromRGB(80,220,120))
+    setStatus("Found "..#found.." remotes — check Output")
+    for _,n in ipairs(found) do print("[KazHub Remote]", n) end
 end)
 
--- FOOTER
+-- footer
+rowOrder += 1
+local footerPad = Instance.new("Frame")
+footerPad.Size = UDim2.new(1,-20,0,24)
+footerPad.BackgroundTransparency = 1
+footerPad.LayoutOrder = rowOrder
+footerPad.Parent = scroll
 local footer = Instance.new("TextLabel")
-footer.Size = UDim2.new(1, 0, 0, 24)
+footer.Size = UDim2.new(1,0,1,0)
 footer.BackgroundTransparency = 1
-footer.Text = "KAZ HUB v1.2  •  Anime Crusaders"
-footer.TextColor3 = Color3.fromRGB(80, 70, 100)
+footer.Text = "KAZ HUB v1.3  •  Anime Crusaders"
+footer.TextColor3 = Color3.fromRGB(40,40,60)
 footer.TextSize = 10
 footer.Font = Enum.Font.Gotham
-footer.LayoutOrder = 99
-footer.Parent = scroll
+footer.Parent = footerPad
 
--- RESIZE HANDLE
-local resizeHandle = Instance.new("TextButton")
-resizeHandle.Size = UDim2.new(0, 20, 0, 20)
-resizeHandle.Position = UDim2.new(1, -20, 1, -20)
-resizeHandle.BackgroundColor3 = Color3.fromRGB(100, 60, 220)
-resizeHandle.Text = "⤡"
-resizeHandle.TextColor3 = Color3.fromRGB(255,255,255)
-resizeHandle.TextSize = 12
-resizeHandle.Font = Enum.Font.GothamBold
-resizeHandle.BorderSizePixel = 0
-resizeHandle.ZIndex = 10
-resizeHandle.Parent = main
-Instance.new("UICorner", resizeHandle).CornerRadius = UDim.new(0, 4)
+-- resize handle
+local resizeBtn = Instance.new("TextButton")
+resizeBtn.Size = UDim2.new(0,22,0,22)
+resizeBtn.Position = UDim2.new(1,-24,1,-24)
+resizeBtn.BackgroundColor3 = Color3.fromRGB(20,20,30)
+resizeBtn.Text = "⤡"
+resizeBtn.TextColor3 = Color3.fromRGB(0,180,150)
+resizeBtn.TextSize = 14
+resizeBtn.Font = Enum.Font.GothamBold
+resizeBtn.BorderSizePixel = 0
+resizeBtn.ZIndex = 10
+resizeBtn.Parent = main
+local rc2 = Instance.new("UICorner")
+rc2.CornerRadius = UDim.new(0,6)
+rc2.Parent = resizeBtn
 
--- RESIZE LOGIC
 local resizing = false
 local resizeStart, sizeStart
 
-resizeHandle.MouseButton1Down:Connect(function()
+resizeBtn.MouseButton1Down:Connect(function()
     resizing = true
     resizeStart = UIS:GetMouseLocation()
-    sizeStart = main.Size
+    sizeStart = main.AbsoluteSize
 end)
-
-UIS.InputEnded:Connect(function(inp)
-    if inp.UserInputType == Enum.UserInputType.MouseButton1
-    or inp.UserInputType == Enum.UserInputType.Touch then
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
         resizing = false
     end
 end)
-
 RS.RenderStepped:Connect(function()
-    if resizing and resizeStart then
+    if resizing then
         local cur = UIS:GetMouseLocation()
         local dx = cur.X - resizeStart.X
         local dy = cur.Y - resizeStart.Y
-        main.Size = UDim2.new(0,
-            math.clamp(sizeStart.X.Offset + dx, 240, 520), 0,
-            math.clamp(sizeStart.Y.Offset + dy, 300, 700))
+        local nw = math.clamp(sizeStart.X + dx, 220, 500)
+        local nh = math.clamp(sizeStart.Y + dy, 300, 700)
+        main.Size = UDim2.new(0, nw, 0, nh)
     end
 end)
 
--- HIDE / SHOW
+-- hide / show
 hideBtn.MouseButton1Click:Connect(function()
     main.Visible = false
     tab.Visible = true
 end)
-
-tab.InputBegan:Connect(function(inp)
-    if inp.UserInputType == Enum.UserInputType.Touch
-    or inp.UserInputType == Enum.UserInputType.MouseButton1 then
+tab.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
         tab.Visible = false
         main.Visible = true
     end
