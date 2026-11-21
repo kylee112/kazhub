@@ -1,5 +1,5 @@
 -- language: Lua, executor: Delta, game: Anime Crusaders
--- KAZ HUB v1.3 | Dark + Teal Toggle UI
+-- KAZ HUB v1.4 | Dark + Teal Toggle UI + Anti-AFK
 
 pcall(function()
     game:GetService("CoreGui"):FindFirstChild("KazHub"):Destroy()
@@ -9,17 +9,24 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local UIS = game:GetService("UserInputService")
 local RS = game:GetService("RunService")
+local VPS = game:GetService("VirtualUser")
 local lp = Players.LocalPlayer
 
 local state = {
-    autopilot=false, autoreplay=false, autostart=false,
+    antiafk=false, autopilot=false, autoreplay=false, autostart=false,
     autoskip=false, autoupgrade=false, autosell=false,
     autoquest=false, macrorecord=false,
 }
 local macroData = {}
 local gameEndCooldown = false
 
--- game end detector (fires callback ONCE per round end, 5s cooldown)
+-- Anti-AFK (always active)
+lp.Idled:Connect(function()
+    VPS:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VPS:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
+
 local function onGameEnd(cb)
     task.spawn(function()
         while true do
@@ -71,7 +78,6 @@ screen.ResetOnSpawn = false
 screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screen.Parent = CoreGui
 
--- minimized tab
 local tab = Instance.new("Frame")
 tab.Name = "MinTab"
 tab.Size = UDim2.new(0,120,0,32)
@@ -98,7 +104,6 @@ tabLabel.TextSize = 12
 tabLabel.Font = Enum.Font.GothamBold
 tabLabel.Parent = tab
 
--- main window
 local main = Instance.new("Frame")
 main.Name = "Main"
 main.Size = UDim2.new(0,320,0,500)
@@ -117,7 +122,6 @@ mainStroke.Color = Color3.fromRGB(35,35,50)
 mainStroke.Thickness = 1.5
 mainStroke.Parent = main
 
--- header
 local header = Instance.new("Frame")
 header.Size = UDim2.new(1,0,0,52)
 header.BackgroundColor3 = Color3.fromRGB(18,18,26)
@@ -126,7 +130,7 @@ header.Parent = main
 local headerCorner = Instance.new("UICorner")
 headerCorner.CornerRadius = UDim.new(0,14)
 headerCorner.Parent = header
-local headerFix = Instance.new("Frame") -- covers bottom corners
+local headerFix = Instance.new("Frame")
 headerFix.Size = UDim2.new(1,0,0,14)
 headerFix.Position = UDim2.new(0,0,1,-14)
 headerFix.BackgroundColor3 = Color3.fromRGB(18,18,26)
@@ -179,7 +183,6 @@ local hideBtnCorner = Instance.new("UICorner")
 hideBtnCorner.CornerRadius = UDim.new(0,6)
 hideBtnCorner.Parent = hideBtn
 
--- status bar
 local statusBar = Instance.new("Frame")
 statusBar.Size = UDim2.new(1,0,0,28)
 statusBar.Position = UDim2.new(0,0,0,52)
@@ -201,7 +204,6 @@ local function setStatus(msg)
     statusLabel.Text = "● " .. msg
 end
 
--- scroll body
 local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1,0,1,-108)
 scroll.Position = UDim2.new(0,0,0,80)
@@ -227,7 +229,6 @@ bodyPad.Parent = scroll
 
 local rowOrder = 0
 
--- section label
 local function makeSection(text)
     rowOrder += 1
     local f = Instance.new("Frame")
@@ -247,8 +248,7 @@ local function makeSection(text)
     lbl.Parent = f
 end
 
--- pill toggle
-local function makeToggle(label, stateKey, onFire, offFire)
+local function makeToggle(label, stateKey, onFire)
     rowOrder += 1
     local row = Instance.new("Frame")
     row.Size = UDim2.new(1,-20,0,42)
@@ -317,7 +317,6 @@ local function makeToggle(label, stateKey, onFire, offFire)
     end)
 end
 
--- action button
 local function makeAction(label, cb)
     rowOrder += 1
     local btn = Instance.new("TextButton")
@@ -346,10 +345,9 @@ local function makeAction(label, cb)
     end)
 end
 
--- map input
 local mapName = ""
-rowOrder += 1
 local function makeMapBox()
+    rowOrder += 1
     local f = Instance.new("Frame")
     f.Size = UDim2.new(1,-20,0,38)
     f.BackgroundColor3 = Color3.fromRGB(20,20,30)
@@ -381,6 +379,9 @@ local function makeMapBox()
 end
 
 -- build layout
+makeSection("Protection")
+makeToggle("🛡  Anti AFK","antiafk") -- VPS already hooked globally above
+
 makeSection("Automation")
 makeToggle("Auto Next Stage","autopilot",function()
     onGameEnd(function()
@@ -487,7 +488,6 @@ makeAction("🔍  Scan All Remotes",function()
     for _,n in ipairs(found) do print("[KazHub Remote]", n) end
 end)
 
--- footer
 rowOrder += 1
 local footerPad = Instance.new("Frame")
 footerPad.Size = UDim2.new(1,-20,0,24)
@@ -497,13 +497,12 @@ footerPad.Parent = scroll
 local footer = Instance.new("TextLabel")
 footer.Size = UDim2.new(1,0,1,0)
 footer.BackgroundTransparency = 1
-footer.Text = "KAZ HUB v1.3  •  Anime Crusaders"
+footer.Text = "KAZ HUB v1.4  •  Anime Crusaders"
 footer.TextColor3 = Color3.fromRGB(40,40,60)
 footer.TextSize = 10
 footer.Font = Enum.Font.Gotham
 footer.Parent = footerPad
 
--- resize handle
 local resizeBtn = Instance.new("TextButton")
 resizeBtn.Size = UDim2.new(0,22,0,22)
 resizeBtn.Position = UDim2.new(1,-24,1,-24)
@@ -543,7 +542,6 @@ RS.RenderStepped:Connect(function()
     end
 end)
 
--- hide / show
 hideBtn.MouseButton1Click:Connect(function()
     main.Visible = false
     tab.Visible = true
