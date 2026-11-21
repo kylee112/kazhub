@@ -20,7 +20,6 @@ local state = {
 local macroData = {}
 local gameEndCooldown = false
 
--- Anti-AFK (always active)
 lp.Idled:Connect(function()
     VPS:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     task.wait(1)
@@ -78,6 +77,7 @@ screen.ResetOnSpawn = false
 screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screen.Parent = CoreGui
 
+-- minimized tab
 local tab = Instance.new("Frame")
 tab.Name = "MinTab"
 tab.Size = UDim2.new(0,120,0,32)
@@ -88,22 +88,19 @@ tab.Active = true
 tab.Draggable = true
 tab.Visible = false
 tab.Parent = screen
-local tabStroke = Instance.new("UIStroke")
+Instance.new("UICorner", tab).CornerRadius = UDim.new(0,8)
+local tabStroke = Instance.new("UIStroke", tab)
 tabStroke.Color = Color3.fromRGB(0,180,150)
 tabStroke.Thickness = 1.5
-tabStroke.Parent = tab
-local tabCorner = Instance.new("UICorner")
-tabCorner.CornerRadius = UDim.new(0,8)
-tabCorner.Parent = tab
-local tabLabel = Instance.new("TextLabel")
+local tabLabel = Instance.new("TextLabel", tab)
 tabLabel.Size = UDim2.new(1,0,1,0)
 tabLabel.BackgroundTransparency = 1
 tabLabel.Text = "⚡ KAZ HUB"
 tabLabel.TextColor3 = Color3.fromRGB(0,210,170)
 tabLabel.TextSize = 12
 tabLabel.Font = Enum.Font.GothamBold
-tabLabel.Parent = tab
 
+-- main window
 local main = Instance.new("Frame")
 main.Name = "Main"
 main.Size = UDim2.new(0,320,0,500)
@@ -114,30 +111,26 @@ main.Active = true
 main.Draggable = true
 main.ClipsDescendants = true
 main.Parent = screen
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0,14)
-mainCorner.Parent = main
-local mainStroke = Instance.new("UIStroke")
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,14)
+local mainStroke = Instance.new("UIStroke", main)
 mainStroke.Color = Color3.fromRGB(35,35,50)
 mainStroke.Thickness = 1.5
-mainStroke.Parent = main
 
-local header = Instance.new("Frame")
+-- header
+local header = Instance.new("Frame", main)
 header.Size = UDim2.new(1,0,0,52)
+header.Position = UDim2.new(0,0,0,0)
 header.BackgroundColor3 = Color3.fromRGB(18,18,26)
 header.BorderSizePixel = 0
-header.Parent = main
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0,14)
-headerCorner.Parent = header
-local headerFix = Instance.new("Frame")
-headerFix.Size = UDim2.new(1,0,0,14)
-headerFix.Position = UDim2.new(0,0,1,-14)
-headerFix.BackgroundColor3 = Color3.fromRGB(18,18,26)
-headerFix.BorderSizePixel = 0
-headerFix.Parent = header
+Instance.new("UICorner", header).CornerRadius = UDim.new(0,14)
+-- patch bottom corners
+local hpatch = Instance.new("Frame", header)
+hpatch.Size = UDim2.new(1,0,0,14)
+hpatch.Position = UDim2.new(0,0,1,-14)
+hpatch.BackgroundColor3 = Color3.fromRGB(18,18,26)
+hpatch.BorderSizePixel = 0
 
-local icon = Instance.new("TextLabel")
+local icon = Instance.new("TextLabel", header)
 icon.Size = UDim2.new(0,30,0,30)
 icon.Position = UDim2.new(0,14,0,11)
 icon.BackgroundTransparency = 1
@@ -145,31 +138,28 @@ icon.Text = "⚡"
 icon.TextSize = 20
 icon.Font = Enum.Font.GothamBold
 icon.TextColor3 = Color3.fromRGB(0,210,170)
-icon.Parent = header
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(0,180,0,20)
-titleLabel.Position = UDim2.new(0,48,0,8)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "KAZ HUB"
-titleLabel.TextColor3 = Color3.fromRGB(232,232,240)
-titleLabel.TextSize = 15
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Parent = header
+local titleLbl = Instance.new("TextLabel", header)
+titleLbl.Size = UDim2.new(0,180,0,20)
+titleLbl.Position = UDim2.new(0,48,0,8)
+titleLbl.BackgroundTransparency = 1
+titleLbl.Text = "KAZ HUB"
+titleLbl.TextColor3 = Color3.fromRGB(232,232,240)
+titleLbl.TextSize = 15
+titleLbl.Font = Enum.Font.GothamBold
+titleLbl.TextXAlignment = Enum.TextXAlignment.Left
 
-local subLabel = Instance.new("TextLabel")
-subLabel.Size = UDim2.new(0,180,0,16)
-subLabel.Position = UDim2.new(0,48,0,27)
-subLabel.BackgroundTransparency = 1
-subLabel.Text = "Anime Crusaders"
-subLabel.TextColor3 = Color3.fromRGB(80,80,110)
-subLabel.TextSize = 11
-subLabel.Font = Enum.Font.Gotham
-subLabel.TextXAlignment = Enum.TextXAlignment.Left
-subLabel.Parent = header
+local subLbl = Instance.new("TextLabel", header)
+subLbl.Size = UDim2.new(0,180,0,16)
+subLbl.Position = UDim2.new(0,48,0,28)
+subLbl.BackgroundTransparency = 1
+subLbl.Text = "Anime Crusaders"
+subLbl.TextColor3 = Color3.fromRGB(80,80,110)
+subLbl.TextSize = 11
+subLbl.Font = Enum.Font.Gotham
+subLbl.TextXAlignment = Enum.TextXAlignment.Left
 
-local hideBtn = Instance.new("TextButton")
+local hideBtn = Instance.new("TextButton", header)
 hideBtn.Size = UDim2.new(0,26,0,26)
 hideBtn.Position = UDim2.new(1,-38,0,13)
 hideBtn.BackgroundColor3 = Color3.fromRGB(30,30,42)
@@ -178,34 +168,32 @@ hideBtn.TextColor3 = Color3.fromRGB(120,120,160)
 hideBtn.TextSize = 12
 hideBtn.Font = Enum.Font.GothamBold
 hideBtn.BorderSizePixel = 0
-hideBtn.Parent = header
-local hideBtnCorner = Instance.new("UICorner")
-hideBtnCorner.CornerRadius = UDim.new(0,6)
-hideBtnCorner.Parent = hideBtn
+Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(0,6)
 
-local statusBar = Instance.new("Frame")
+-- status bar
+local statusBar = Instance.new("Frame", main)
 statusBar.Size = UDim2.new(1,0,0,28)
 statusBar.Position = UDim2.new(0,0,0,52)
 statusBar.BackgroundColor3 = Color3.fromRGB(16,16,22)
 statusBar.BorderSizePixel = 0
-statusBar.Parent = main
-local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1,-16,1,0)
-statusLabel.Position = UDim2.new(0,12,0,0)
-statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "● Ready"
-statusLabel.TextColor3 = Color3.fromRGB(0,180,150)
-statusLabel.TextSize = 11
-statusLabel.Font = Enum.Font.Gotham
-statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-statusLabel.Parent = statusBar
+
+local statusLbl = Instance.new("TextLabel", statusBar)
+statusLbl.Size = UDim2.new(1,-16,1,0)
+statusLbl.Position = UDim2.new(0,12,0,0)
+statusLbl.BackgroundTransparency = 1
+statusLbl.Text = "● Ready"
+statusLbl.TextColor3 = Color3.fromRGB(0,180,150)
+statusLbl.TextSize = 11
+statusLbl.Font = Enum.Font.Gotham
+statusLbl.TextXAlignment = Enum.TextXAlignment.Left
 
 local function setStatus(msg)
-    statusLabel.Text = "● " .. msg
+    statusLbl.Text = "● " .. msg
 end
 
-local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1,0,1,-108)
+-- scroll body — starts at y=80 (52 header + 28 status)
+local scroll = Instance.new("ScrollingFrame", main)
+scroll.Size = UDim2.new(1,0,1,-80)
 scroll.Position = UDim2.new(0,0,0,80)
 scroll.BackgroundTransparency = 1
 scroll.BorderSizePixel = 0
@@ -213,58 +201,48 @@ scroll.ScrollBarThickness = 3
 scroll.ScrollBarImageColor3 = Color3.fromRGB(0,180,150)
 scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 scroll.CanvasSize = UDim2.new(0,0,0,0)
-scroll.Parent = main
 
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0,4)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = scroll
+local listLayout = Instance.new("UIListLayout", scroll)
+listLayout.Padding = UDim.new(0,4)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local bodyPad = Instance.new("UIPadding")
-bodyPad.PaddingLeft = UDim.new(0,10)
-bodyPad.PaddingRight = UDim.new(0,10)
-bodyPad.PaddingTop = UDim.new(0,8)
-bodyPad.PaddingBottom = UDim.new(0,10)
-bodyPad.Parent = scroll
+local pad = Instance.new("UIPadding", scroll)
+pad.PaddingLeft = UDim.new(0,10)
+pad.PaddingRight = UDim.new(0,10)
+pad.PaddingTop = UDim.new(0,8)
+pad.PaddingBottom = UDim.new(0,10)
 
-local rowOrder = 0
+local order = 0
 
 local function makeSection(text)
-    rowOrder += 1
-    local f = Instance.new("Frame")
-    f.Size = UDim2.new(1,-20,0,20)
+    order += 1
+    local f = Instance.new("Frame", scroll)
+    f.Size = UDim2.new(1,-20,0,22)
     f.BackgroundTransparency = 1
-    f.LayoutOrder = rowOrder
-    f.Parent = scroll
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1,0,1,0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text:upper()
-    lbl.TextColor3 = Color3.fromRGB(60,60,88)
-    lbl.TextSize = 9
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.LetterSpacing = 2
-    lbl.Parent = f
+    f.LayoutOrder = order
+    local l = Instance.new("TextLabel", f)
+    l.Size = UDim2.new(1,0,1,0)
+    l.BackgroundTransparency = 1
+    l.Text = text:upper()
+    l.TextColor3 = Color3.fromRGB(60,60,88)
+    l.TextSize = 9
+    l.Font = Enum.Font.GothamBold
+    l.TextXAlignment = Enum.TextXAlignment.Left
 end
 
 local function makeToggle(label, stateKey, onFire)
-    rowOrder += 1
-    local row = Instance.new("Frame")
-    row.Size = UDim2.new(1,-20,0,42)
+    order += 1
+    local row = Instance.new("Frame", scroll)
+    row.Size = UDim2.new(1,-20,0,44)
     row.BackgroundColor3 = Color3.fromRGB(20,20,30)
     row.BorderSizePixel = 0
-    row.LayoutOrder = rowOrder
-    row.Parent = scroll
-    local rc = Instance.new("UICorner")
-    rc.CornerRadius = UDim.new(0,10)
-    rc.Parent = row
-    local stroke = Instance.new("UIStroke")
+    row.LayoutOrder = order
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0,10)
+    local stroke = Instance.new("UIStroke", row)
     stroke.Color = Color3.fromRGB(35,35,50)
     stroke.Thickness = 1
-    stroke.Parent = row
 
-    local lbl = Instance.new("TextLabel")
+    local lbl = Instance.new("TextLabel", row)
     lbl.Size = UDim2.new(1,-60,1,0)
     lbl.Position = UDim2.new(0,12,0,0)
     lbl.BackgroundTransparency = 1
@@ -273,69 +251,53 @@ local function makeToggle(label, stateKey, onFire)
     lbl.TextSize = 12
     lbl.Font = Enum.Font.Gotham
     lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = row
 
-    local pill = Instance.new("Frame")
+    local pill = Instance.new("Frame", row)
     pill.Size = UDim2.new(0,42,0,24)
     pill.Position = UDim2.new(1,-54,0.5,-12)
     pill.BackgroundColor3 = Color3.fromRGB(40,40,58)
     pill.BorderSizePixel = 0
-    pill.Parent = row
-    local pc = Instance.new("UICorner")
-    pc.CornerRadius = UDim.new(1,0)
-    pc.Parent = pill
+    Instance.new("UICorner", pill).CornerRadius = UDim.new(1,0)
 
-    local knob = Instance.new("Frame")
+    local knob = Instance.new("Frame", pill)
     knob.Size = UDim2.new(0,18,0,18)
     knob.Position = UDim2.new(0,3,0.5,-9)
     knob.BackgroundColor3 = Color3.fromRGB(100,100,130)
     knob.BorderSizePixel = 0
-    knob.Parent = pill
-    local kc = Instance.new("UICorner")
-    kc.CornerRadius = UDim.new(1,0)
-    kc.Parent = knob
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1,0)
 
-    local hitbox = Instance.new("TextButton")
-    hitbox.Size = UDim2.new(1,0,1,0)
-    hitbox.BackgroundTransparency = 1
-    hitbox.Text = ""
-    hitbox.Parent = row
+    local hit = Instance.new("TextButton", row)
+    hit.Size = UDim2.new(1,0,1,0)
+    hit.BackgroundTransparency = 1
+    hit.Text = ""
 
-    hitbox.MouseButton1Click:Connect(function()
+    hit.MouseButton1Click:Connect(function()
         state[stateKey] = not state[stateKey]
         local on = state[stateKey]
         pill.BackgroundColor3 = on and Color3.fromRGB(0,180,150) or Color3.fromRGB(40,40,58)
         knob.BackgroundColor3 = on and Color3.fromRGB(255,255,255) or Color3.fromRGB(100,100,130)
         knob.Position = on and UDim2.new(1,-21,0.5,-9) or UDim2.new(0,3,0.5,-9)
         stroke.Color = on and Color3.fromRGB(0,160,130) or Color3.fromRGB(35,35,50)
-        if on then
-            setStatus(label .. " ON")
-            if onFire then task.spawn(onFire) end
-        else
-            setStatus(label .. " OFF")
-        end
+        setStatus(label .. (on and " ON" or " OFF"))
+        if on and onFire then task.spawn(onFire) end
     end)
 end
 
 local function makeAction(label, cb)
-    rowOrder += 1
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1,-20,0,38)
+    order += 1
+    local btn = Instance.new("TextButton", scroll)
+    btn.Size = UDim2.new(1,-20,0,40)
     btn.BackgroundColor3 = Color3.fromRGB(20,20,30)
     btn.BorderSizePixel = 0
     btn.Text = label
     btn.TextColor3 = Color3.fromRGB(190,190,210)
     btn.TextSize = 12
     btn.Font = Enum.Font.Gotham
-    btn.LayoutOrder = rowOrder
-    btn.Parent = scroll
-    local bc = Instance.new("UICorner")
-    bc.CornerRadius = UDim.new(0,10)
-    bc.Parent = btn
-    local bs = Instance.new("UIStroke")
+    btn.LayoutOrder = order
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+    local bs = Instance.new("UIStroke", btn)
     bs.Color = Color3.fromRGB(35,35,50)
     bs.Thickness = 1
-    bs.Parent = btn
 
     btn.MouseButton1Click:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(0,160,130)
@@ -347,21 +309,17 @@ end
 
 local mapName = ""
 local function makeMapBox()
-    rowOrder += 1
-    local f = Instance.new("Frame")
-    f.Size = UDim2.new(1,-20,0,38)
+    order += 1
+    local f = Instance.new("Frame", scroll)
+    f.Size = UDim2.new(1,-20,0,40)
     f.BackgroundColor3 = Color3.fromRGB(20,20,30)
     f.BorderSizePixel = 0
-    f.LayoutOrder = rowOrder
-    f.Parent = scroll
-    local fc = Instance.new("UICorner")
-    fc.CornerRadius = UDim.new(0,10)
-    fc.Parent = f
-    local fs = Instance.new("UIStroke")
+    f.LayoutOrder = order
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0,10)
+    local fs = Instance.new("UIStroke", f)
     fs.Color = Color3.fromRGB(35,35,50)
     fs.Thickness = 1
-    fs.Parent = f
-    local box = Instance.new("TextBox")
+    local box = Instance.new("TextBox", f)
     box.Size = UDim2.new(1,-20,1,0)
     box.Position = UDim2.new(0,10,0,0)
     box.BackgroundTransparency = 1
@@ -372,15 +330,14 @@ local function makeMapBox()
     box.TextSize = 12
     box.Font = Enum.Font.Gotham
     box.TextXAlignment = Enum.TextXAlignment.Left
-    box.Parent = f
     box:GetPropertyChangedSignal("Text"):Connect(function()
         mapName = box.Text
     end)
 end
 
--- build layout
+-- build rows
 makeSection("Protection")
-makeToggle("🛡  Anti AFK","antiafk") -- VPS already hooked globally above
+makeToggle("🛡  Anti AFK", "antiafk")
 
 makeSection("Automation")
 makeToggle("Auto Next Stage","autopilot",function()
@@ -443,9 +400,9 @@ makeToggle("⏺ Record Macro","macrorecord",function()
 end)
 makeAction("▶  Play Macro",function()
     setStatus("Playing macro...")
-    for _,entry in ipairs(macroData) do
-        fireRemote({entry.remote}, entry.arg)
-        task.wait(entry.delay or 0.5)
+    for _,e in ipairs(macroData) do
+        fireRemote({e.remote}, e.arg)
+        task.wait(e.delay or 0.5)
     end
     setStatus("Macro done!")
 end)
@@ -484,26 +441,26 @@ makeAction("🔍  Scan All Remotes",function()
             table.insert(found, v.Name)
         end
     end
-    setStatus("Found "..#found.." remotes — check Output")
-    for _,n in ipairs(found) do print("[KazHub Remote]", n) end
+    setStatus("Found "..#found.." remotes")
+    for _,n in ipairs(found) do print("[KazHub]", n) end
 end)
 
-rowOrder += 1
-local footerPad = Instance.new("Frame")
-footerPad.Size = UDim2.new(1,-20,0,24)
-footerPad.BackgroundTransparency = 1
-footerPad.LayoutOrder = rowOrder
-footerPad.Parent = scroll
-local footer = Instance.new("TextLabel")
-footer.Size = UDim2.new(1,0,1,0)
-footer.BackgroundTransparency = 1
-footer.Text = "KAZ HUB v1.4  •  Anime Crusaders"
-footer.TextColor3 = Color3.fromRGB(40,40,60)
-footer.TextSize = 10
-footer.Font = Enum.Font.Gotham
-footer.Parent = footerPad
+-- footer
+order += 1
+local fp = Instance.new("Frame", scroll)
+fp.Size = UDim2.new(1,-20,0,24)
+fp.BackgroundTransparency = 1
+fp.LayoutOrder = order
+local fl = Instance.new("TextLabel", fp)
+fl.Size = UDim2.new(1,0,1,0)
+fl.BackgroundTransparency = 1
+fl.Text = "KAZ HUB v1.4  •  Anime Crusaders"
+fl.TextColor3 = Color3.fromRGB(40,40,60)
+fl.TextSize = 10
+fl.Font = Enum.Font.Gotham
 
-local resizeBtn = Instance.new("TextButton")
+-- resize handle
+local resizeBtn = Instance.new("TextButton", main)
 resizeBtn.Size = UDim2.new(0,22,0,22)
 resizeBtn.Position = UDim2.new(1,-24,1,-24)
 resizeBtn.BackgroundColor3 = Color3.fromRGB(20,20,30)
@@ -513,14 +470,9 @@ resizeBtn.TextSize = 14
 resizeBtn.Font = Enum.Font.GothamBold
 resizeBtn.BorderSizePixel = 0
 resizeBtn.ZIndex = 10
-resizeBtn.Parent = main
-local rc2 = Instance.new("UICorner")
-rc2.CornerRadius = UDim.new(0,6)
-rc2.Parent = resizeBtn
+Instance.new("UICorner", resizeBtn).CornerRadius = UDim.new(0,6)
 
-local resizing = false
-local resizeStart, sizeStart
-
+local resizing, resizeStart, sizeStart = false, nil, nil
 resizeBtn.MouseButton1Down:Connect(function()
     resizing = true
     resizeStart = UIS:GetMouseLocation()
@@ -534,14 +486,13 @@ end)
 RS.RenderStepped:Connect(function()
     if resizing then
         local cur = UIS:GetMouseLocation()
-        local dx = cur.X - resizeStart.X
-        local dy = cur.Y - resizeStart.Y
-        local nw = math.clamp(sizeStart.X + dx, 220, 500)
-        local nh = math.clamp(sizeStart.Y + dy, 300, 700)
-        main.Size = UDim2.new(0, nw, 0, nh)
+        local nw = math.clamp(sizeStart.X+(cur.X-resizeStart.X), 220, 500)
+        local nh = math.clamp(sizeStart.Y+(cur.Y-resizeStart.Y), 300, 700)
+        main.Size = UDim2.new(0,nw,0,nh)
     end
 end)
 
+-- hide/show
 hideBtn.MouseButton1Click:Connect(function()
     main.Visible = false
     tab.Visible = true
