@@ -1,5 +1,5 @@
 -- language: Lua, executor: Delta, game: Anime Crusaders
--- KAZ HUB v1.4 | Dark + Teal Toggle UI + Anti-AFK
+-- KAZ HUB v1.4 Final | All fixes + touch resize
 
 pcall(function()
     game:GetService("CoreGui"):FindFirstChild("KazHub"):Destroy()
@@ -20,34 +20,32 @@ local state = {
 local macroData = {}
 local gameEndCooldown = false
 
+-- Anti-AFK
 lp.Idled:Connect(function()
     VPS:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     task.wait(1)
     VPS:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
 end)
 
-local function onGameEnd(cb)
-    task.spawn(function()
-        while true do
-            task.wait(1)
-            local ended = false
-            pcall(function()
-                for _, v in ipairs(lp.PlayerGui:GetDescendants()) do
-                    local n = v.Name:lower()
-                    if (n:find("result") or n:find("end") or n:find("victory")
-                        or n:find("complete") or n:find("next")) and v.Visible then
-                        ended = true
+local function clickGuiButton(keywords)
+    local clicked = false
+    pcall(function()
+        for _, v in ipairs(lp.PlayerGui:GetDescendants()) do
+            if (v:IsA("TextButton") or v:IsA("ImageButton")) and v.Visible then
+                local n = v.Name:lower()
+                local t = v:IsA("TextButton") and v.Text:lower() or ""
+                for _, kw in ipairs(keywords) do
+                    if n:find(kw) or t:find(kw) then
+                        v.MouseButton1Click:Fire()
+                        clicked = true
+                        break
                     end
                 end
-            end)
-            if ended and not gameEndCooldown then
-                gameEndCooldown = true
-                cb()
-                task.wait(5)
-                gameEndCooldown = false
             end
+            if clicked then break end
         end
     end)
+    return clicked
 end
 
 local function fireRemote(keywords, arg)
@@ -70,6 +68,41 @@ local function fireRemote(keywords, arg)
     end
 end
 
+local function isGameEnded()
+    local ended = false
+    pcall(function()
+        for _, v in ipairs(lp.PlayerGui:GetDescendants()) do
+            if v.Visible then
+                local n = v.Name:lower()
+                if n:find("result") or n:find("victory") or n:find("complete")
+                    or n:find("stageclear") or n:find("roundend") then
+                    ended = true
+                    break
+                end
+            end
+        end
+    end)
+    return ended
+end
+
+-- single shared game-end loop
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if isGameEnded() and not gameEndCooldown then
+            gameEndCooldown = true
+            if state.autopilot then
+                local ok = clickGuiButton({"next","continue","advance","nextstage"})
+            end
+            if state.autoreplay then
+                local ok = clickGuiButton({"replay","again","retry","playagain"})
+            end
+            task.wait(5)
+            gameEndCooldown = false
+        end
+    end
+end)
+
 -- GUI
 local screen = Instance.new("ScreenGui")
 screen.Name = "KazHub"
@@ -78,12 +111,16 @@ screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screen.Parent = CoreGui
 
 -- minimized tab
-local tab = Instance.new("Frame")
+local tab = Instance.new("TextButton")
 tab.Name = "MinTab"
 tab.Size = UDim2.new(0,120,0,32)
 tab.Position = UDim2.new(0,20,0,20)
 tab.BackgroundColor3 = Color3.fromRGB(14,14,20)
 tab.BorderSizePixel = 0
+tab.Text = "⚡ KAZ HUB"
+tab.TextColor3 = Color3.fromRGB(0,210,170)
+tab.TextSize = 12
+tab.Font = Enum.Font.GothamBold
 tab.Active = true
 tab.Draggable = true
 tab.Visible = false
@@ -92,13 +129,6 @@ Instance.new("UICorner", tab).CornerRadius = UDim.new(0,8)
 local tabStroke = Instance.new("UIStroke", tab)
 tabStroke.Color = Color3.fromRGB(0,180,150)
 tabStroke.Thickness = 1.5
-local tabLabel = Instance.new("TextLabel", tab)
-tabLabel.Size = UDim2.new(1,0,1,0)
-tabLabel.BackgroundTransparency = 1
-tabLabel.Text = "⚡ KAZ HUB"
-tabLabel.TextColor3 = Color3.fromRGB(0,210,170)
-tabLabel.TextSize = 12
-tabLabel.Font = Enum.Font.GothamBold
 
 -- main window
 local main = Instance.new("Frame")
@@ -119,11 +149,9 @@ mainStroke.Thickness = 1.5
 -- header
 local header = Instance.new("Frame", main)
 header.Size = UDim2.new(1,0,0,52)
-header.Position = UDim2.new(0,0,0,0)
 header.BackgroundColor3 = Color3.fromRGB(18,18,26)
 header.BorderSizePixel = 0
 Instance.new("UICorner", header).CornerRadius = UDim.new(0,14)
--- patch bottom corners
 local hpatch = Instance.new("Frame", header)
 hpatch.Size = UDim2.new(1,0,0,14)
 hpatch.Position = UDim2.new(0,0,1,-14)
@@ -191,7 +219,7 @@ local function setStatus(msg)
     statusLbl.Text = "● " .. msg
 end
 
--- scroll body — starts at y=80 (52 header + 28 status)
+-- scroll body
 local scroll = Instance.new("ScrollingFrame", main)
 scroll.Size = UDim2.new(1,0,1,-80)
 scroll.Position = UDim2.new(0,0,0,80)
@@ -337,21 +365,11 @@ end
 
 -- build rows
 makeSection("Protection")
-makeToggle("🛡  Anti AFK", "antiafk")
+makeToggle("🛡  Anti AFK","antiafk")
 
 makeSection("Automation")
-makeToggle("Auto Next Stage","autopilot",function()
-    onGameEnd(function()
-        fireRemote({"next","stage","advance","proceed"})
-        setStatus("Next stage fired!")
-    end)
-end)
-makeToggle("Auto Replay","autoreplay",function()
-    onGameEnd(function()
-        fireRemote({"replay","restart","again","retry"})
-        setStatus("Replay fired!")
-    end)
-end)
+makeToggle("Auto Next Stage","autopilot")
+makeToggle("Auto Replay","autoreplay")
 makeToggle("Auto Start","autostart",function()
     task.spawn(function()
         while state.autostart do
@@ -459,10 +477,10 @@ fl.TextColor3 = Color3.fromRGB(40,40,60)
 fl.TextSize = 10
 fl.Font = Enum.Font.Gotham
 
--- resize handle
+-- touch-compatible resize handle
 local resizeBtn = Instance.new("TextButton", main)
-resizeBtn.Size = UDim2.new(0,22,0,22)
-resizeBtn.Position = UDim2.new(1,-24,1,-24)
+resizeBtn.Size = UDim2.new(0,30,0,30)
+resizeBtn.Position = UDim2.new(1,-32,1,-32)
 resizeBtn.BackgroundColor3 = Color3.fromRGB(20,20,30)
 resizeBtn.Text = "⤡"
 resizeBtn.TextColor3 = Color3.fromRGB(0,180,150)
@@ -470,36 +488,46 @@ resizeBtn.TextSize = 14
 resizeBtn.Font = Enum.Font.GothamBold
 resizeBtn.BorderSizePixel = 0
 resizeBtn.ZIndex = 10
-Instance.new("UICorner", resizeBtn).CornerRadius = UDim.new(0,6)
+Instance.new("UICorner", resizeBtn).CornerRadius = UDim.new(0,8)
 
-local resizing, resizeStart, sizeStart = false, nil, nil
-resizeBtn.MouseButton1Down:Connect(function()
-    resizing = true
-    resizeStart = UIS:GetMouseLocation()
-    sizeStart = main.AbsoluteSize
-end)
-UIS.InputEnded:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        resizing = false
+local resizing = false
+local startInputPos, startSize
+
+resizeBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        resizing = true
+        startInputPos = Vector2.new(input.Position.X, input.Position.Y)
+        startSize = Vector2.new(main.AbsoluteSize.X, main.AbsoluteSize.Y)
     end
 end)
-RS.RenderStepped:Connect(function()
-    if resizing then
-        local cur = UIS:GetMouseLocation()
-        local nw = math.clamp(sizeStart.X+(cur.X-resizeStart.X), 220, 500)
-        local nh = math.clamp(sizeStart.Y+(cur.Y-resizeStart.Y), 300, 700)
-        main.Size = UDim2.new(0,nw,0,nh)
+
+resizeBtn.InputChanged:Connect(function(input)
+    if resizing and (input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        local dx = input.Position.X - startInputPos.X
+        local dy = input.Position.Y - startInputPos.Y
+        local nw = math.clamp(startSize.X + dx, 200, 550)
+        local nh = math.clamp(startSize.Y + dy, 280, 720)
+        main.Size = UDim2.new(0, nw, 0, nh)
+    end
+end)
+
+resizeBtn.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        resizing = false
     end
 end)
 
 -- hide/show
 hideBtn.MouseButton1Click:Connect(function()
     main.Visible = false
+    main.Active = false
     tab.Visible = true
 end)
-tab.InputBegan:Connect(function(i)
-    if i.UserInputType == Enum.UserInputType.MouseButton1 then
-        tab.Visible = false
-        main.Visible = true
-    end
+tab.MouseButton1Click:Connect(function()
+    tab.Visible = false
+    main.Visible = true
+    main.Active = true
 end)
