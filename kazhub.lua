@@ -1,5 +1,5 @@
 -- language: Lua, executor: Delta, game: Anime Crusaders
--- KAZ HUB v1.4 Final | All fixes + touch resize
+-- KAZ HUB v1.5 | Fixed resize + replay + anti-afk
 
 pcall(function()
     game:GetService("CoreGui"):FindFirstChild("KazHub"):Destroy()
@@ -20,13 +20,21 @@ local state = {
 local macroData = {}
 local gameEndCooldown = false
 
--- Anti-AFK
-lp.Idled:Connect(function()
-    VPS:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    VPS:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+-- Anti-AFK: manual loop every 60s, no relying on Idled event
+task.spawn(function()
+    while true do
+        task.wait(60)
+        if state.antiafk then
+            pcall(function()
+                VPS:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                task.wait(0.1)
+                VPS:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            end)
+        end
+    end
 end)
 
+-- click button in PlayerGui using :Activate() — works on mobile
 local function clickGuiButton(keywords)
     local clicked = false
     pcall(function()
@@ -36,7 +44,7 @@ local function clickGuiButton(keywords)
                 local t = v:IsA("TextButton") and v.Text:lower() or ""
                 for _, kw in ipairs(keywords) do
                     if n:find(kw) or t:find(kw) then
-                        v.MouseButton1Click:Fire()
+                        v:Activate()
                         clicked = true
                         break
                     end
@@ -85,17 +93,16 @@ local function isGameEnded()
     return ended
 end
 
--- single shared game-end loop
 task.spawn(function()
     while true do
         task.wait(1)
         if isGameEnded() and not gameEndCooldown then
             gameEndCooldown = true
             if state.autopilot then
-                local ok = clickGuiButton({"next","continue","advance","nextstage"})
+                clickGuiButton({"next","continue","advance","nextstage"})
             end
             if state.autoreplay then
-                local ok = clickGuiButton({"replay","again","retry","playagain"})
+                clickGuiButton({"replay","again","retry","playagain"})
             end
             task.wait(5)
             gameEndCooldown = false
@@ -219,7 +226,7 @@ local function setStatus(msg)
     statusLbl.Text = "● " .. msg
 end
 
--- scroll body
+-- scroll
 local scroll = Instance.new("ScrollingFrame", main)
 scroll.Size = UDim2.new(1,0,1,-80)
 scroll.Position = UDim2.new(0,0,0,80)
@@ -326,7 +333,6 @@ local function makeAction(label, cb)
     local bs = Instance.new("UIStroke", btn)
     bs.Color = Color3.fromRGB(35,35,50)
     bs.Thickness = 1
-
     btn.MouseButton1Click:Connect(function()
         btn.BackgroundColor3 = Color3.fromRGB(0,160,130)
         task.wait(0.2)
@@ -363,7 +369,7 @@ local function makeMapBox()
     end)
 end
 
--- build rows
+-- rows
 makeSection("Protection")
 makeToggle("🛡  Anti AFK","antiafk")
 
@@ -463,7 +469,6 @@ makeAction("🔍  Scan All Remotes",function()
     for _,n in ipairs(found) do print("[KazHub]", n) end
 end)
 
--- footer
 order += 1
 local fp = Instance.new("Frame", scroll)
 fp.Size = UDim2.new(1,-20,0,24)
@@ -472,50 +477,64 @@ fp.LayoutOrder = order
 local fl = Instance.new("TextLabel", fp)
 fl.Size = UDim2.new(1,0,1,0)
 fl.BackgroundTransparency = 1
-fl.Text = "KAZ HUB v1.4  •  Anime Crusaders"
+fl.Text = "KAZ HUB v1.5  •  Anime Crusaders"
 fl.TextColor3 = Color3.fromRGB(40,40,60)
 fl.TextSize = 10
 fl.Font = Enum.Font.Gotham
 
--- touch-compatible resize handle
+-- resize handle — uses UIS.TouchMoved for mobile
 local resizeBtn = Instance.new("TextButton", main)
 resizeBtn.Size = UDim2.new(0,30,0,30)
 resizeBtn.Position = UDim2.new(1,-32,1,-32)
 resizeBtn.BackgroundColor3 = Color3.fromRGB(20,20,30)
 resizeBtn.Text = "⤡"
 resizeBtn.TextColor3 = Color3.fromRGB(0,180,150)
-resizeBtn.TextSize = 14
+resizeBtn.TextSize = 16
 resizeBtn.Font = Enum.Font.GothamBold
 resizeBtn.BorderSizePixel = 0
 resizeBtn.ZIndex = 10
 Instance.new("UICorner", resizeBtn).CornerRadius = UDim.new(0,8)
 
 local resizing = false
-local startInputPos, startSize
+local startTouchPos, startMainSize
 
 resizeBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch
         or input.UserInputType == Enum.UserInputType.MouseButton1 then
         resizing = true
-        startInputPos = Vector2.new(input.Position.X, input.Position.Y)
-        startSize = Vector2.new(main.AbsoluteSize.X, main.AbsoluteSize.Y)
+        startTouchPos = Vector2.new(input.Position.X, input.Position.Y)
+        startMainSize = Vector2.new(main.AbsoluteSize.X, main.AbsoluteSize.Y)
     end
 end)
 
-resizeBtn.InputChanged:Connect(function(input)
-    if resizing and (input.UserInputType == Enum.UserInputType.Touch
-        or input.UserInputType == Enum.UserInputType.MouseMovement) then
-        local dx = input.Position.X - startInputPos.X
-        local dy = input.Position.Y - startInputPos.Y
-        local nw = math.clamp(startSize.X + dx, 200, 550)
-        local nh = math.clamp(startSize.Y + dy, 280, 720)
+UIS.TouchMoved:Connect(function(touch)
+    if resizing then
+        local dx = touch.Position.X - startTouchPos.X
+        local dy = touch.Position.Y - startTouchPos.Y
+        local nw = math.clamp(startMainSize.X + dx, 200, 550)
+        local nh = math.clamp(startMainSize.Y + dy, 280, 720)
         main.Size = UDim2.new(0, nw, 0, nh)
     end
 end)
 
-resizeBtn.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-        or input.UserInputType == Enum.UserInputType.MouseButton1 then
+UIS.TouchEnded:Connect(function()
+    resizing = false
+end)
+
+-- mouse fallback
+RS.RenderStepped:Connect(function()
+    if resizing and not UIS.TouchEnabled then
+        local cur = UIS:GetMouseLocation()
+        local dx = cur.X - startTouchPos.X
+        local dy = cur.Y - startTouchPos.Y
+        local nw = math.clamp(startMainSize.X + dx, 200, 550)
+        local nh = math.clamp(startMainSize.Y + dy, 280, 720)
+        main.Size = UDim2.new(0, nw, 0, nh)
+    end
+end)
+
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
         resizing = false
     end
 end)
